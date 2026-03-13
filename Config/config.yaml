@@ -1,0 +1,11 @@
+env: qa
+browser: chrome
+grid_url: http://localhost:4444/wd/hub
+
+environments:
+  dev:
+    base_url: https://automationexercise.com/dev
+  qa:
+    base_url: https://automationexercise.com/qa
+  stage:
+    base_url: https://automationexercise.com/stage
