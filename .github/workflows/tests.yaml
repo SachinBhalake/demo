@@ -48,29 +48,20 @@ jobs:
           --self-contained-html \
           --alluredir=Reports/AllureReport
 
-      - name: Install Allure
-        run: |
-          ALLURE_VERSION=2.24.0
-          curl -L -o allure.tgz https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz
-      
-          # Check file size (should NOT be tiny)
-          ls -lh allure.tgz
-          test -s allure.tgz
-          tar -xzf allure.tgz
-          sudo mv allure-${ALLURE_VERSION} /opt/allure
-          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
-
-      # ✅ Generate Allure HTML report
+      # ✅ Generate Allure Report (NO INSTALL)
       - name: Generate Allure Report
-        run: |
-          allure generate Reports/AllureReport -o Reports/AllureReport/html
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
+        with:
+          allure_results: Reports/AllureReport
+          allure_report: Reports/AllureReport/html
 
       # ✅ Upload Reports
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
         with:
           name: html-report
-          path: Reports/HtmlReport
+          path: Reports/HtmlReport/report.html
           if-no-files-found: ignore
 
       - name: Upload Allure Report
@@ -101,7 +92,7 @@ jobs:
           path: Reports/Logs
           if-no-files-found: ignore
 
-      # ✅ Always cleanup
+      # ✅ Cleanup
       - name: Stop Selenium Grid
         if: always()
         run: docker compose down
