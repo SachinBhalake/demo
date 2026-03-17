@@ -1,23 +1,29 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from Utilities.get_config import ConfigReader
 
 
 def get_driver(browser):
 
-    grid_url = "http://localhost:4444/wd/hub"
+    config = ConfigReader()
+    grid_url = config.get_grid_url()
 
-    if browser.lower() == "chrome":
+    browser = browser.lower()
+
+    if browser == "chrome":
         options = ChromeOptions()
 
-    elif browser.lower() == "firefox":
+    elif browser == "firefox":
         options = FirefoxOptions()
 
     else:
         raise ValueError("Browser must be chrome or firefox")
 
-    driver = webdriver.Remote(command_executor=grid_url, options=options)
-    #driver = webdriver.Chrome()
+    driver = webdriver.Remote(
+        command_executor=grid_url,
+        options=options
+    )
 
     driver.maximize_window()
 

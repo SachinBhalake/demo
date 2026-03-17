@@ -1,30 +1,92 @@
+from Utilities.waits import Waits
+
 
 class BasePage:
 
-    def __init__(self, driver):
+    def __init__(self, driver, logger):
         self.driver = driver
+        self.wait = Waits(driver)
+        self.logger = logger
+
+    def highlight(self, element):
+        self.scroll_into_view(element)
+        self.driver.execute_script(
+            "arguments[0].style.border='3px solid red';"
+            "arguments[0].style.background='yellow';"
+            "setTimeout(()=>{arguments[0].style.border='';"
+            "arguments[0].style.background='';},200);",
+            element
+        )
+
+    def wait_for_page_load(self):
+        self.logger.info("Waiting for page load")
+        self.wait.wait_for_page_load()
 
     def get_element(self, locator):
-        element = self.driver.find_element(*locator)
+        self.logger.info(f"Finding element")
+        element = self.wait.visible(locator)
+        self.highlight(element)
         return element
 
-    def click_element(self, locator, element):
-        if locator:
-            element = self.get_element(*locator)
-        element.click()
+    def get_elements(self, locator):
+        self.logger.info(f"Finding element list")
+        elements = self.wait.all_visible(locator)
+        for el in elements:
+            self.highlight(el)
+        return elements
 
-    def send_data(self, data, locator, element):
-        if locator:
-            element = self.get_element(*locator)
+    def click(self, locator):
+        self.logger.info(f"Clicking element")
+        element = self.wait.clickable(locator)
+        self.highlight(element)
+        try:
+            element.click()
+            self.logger.info("Click successful")
+        except Exception as e1:
+            self.logger.warning(f"Normal click failed, trying JS click | {str(e1)}")
+
+            try:
+                self.driver.execute_script("arguments[0].click();", element)
+                self.logger.info("JS click successful")
+
+            except Exception as e2:
+                self.logger.error(
+                    f"Both normal click and JS click failed | "
+                    f"Normal Error: {str(e1)} | JS Error: {str(e2)}"
+                )
+                raise
+
+    def send_keys(self, locator, data):
+        self.logger.info(f"Typing data into element")
+        element = self.get_element(locator)
         element.clear()
         element.send_keys(data)
 
-    def get_text(self, locator, element):
-        if locator:
-            element = self.get_element(*locator)
-        text = element.text
-        if len(text) == 0:
-            text = element.get_attribute("innerText")
-        if len(text) != 0:
-            text = text.strip()
+    def get_text(self, locator):
+        self.logger.info(f"Getting text from element")
+        element = self.get_element(locator)
+        text = element.text or element.get_attribute("innerText")
+
+        text = text.strip() if text else ""
+        self.logger.info(f"Captured text: {text}")
+
         return text
+
+    def get_title(self):
+        self.logger.info(f"Getting page title")
+        title = self.driver.title
+        self.logger.info(f"Page title: {title}")
+        return title
+
+    def scroll_into_view(self, element):
+        self.driver.execute_script(
+            "arguments[0].scrollIntoView({block:'center', inline:'nearest', behavior:'instant'});",
+            element
+        )
+
+    def get_attribute(self, locator, attr):
+        self.logger.info(f"Getting attribute of element")
+        element = self.get_element(locator)
+        value = element.get_attribute(attr)
+        self.logger.info(f"Attribute value: {value}")
+        return value

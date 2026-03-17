@@ -3,10 +3,13 @@ from Base.test_base import BasePage
 
 class HomePage(BasePage):
     _logo = (By.XPATH, "//img[contains(@src,'/logo.png')]")
+    _products = (By.XPATH, "//a[@href='/products']")
 
-    def __init__(self, driver):
-        super().__init__(driver)
+    def go_to_products(self):
+        self.click(self._products)
 
-    def verify_logo(self):
-        elem = self.get_element(self._logo)
-        return elem
+    def is_logo_visible(self):
+        return self.get_element(self._logo).is_displayed()
+
+    def get_homepage_title(self):
+        return self.get_title()

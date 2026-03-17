@@ -28,13 +28,24 @@ services:
       SE_EVENT_BUS_PUBLISH_PORT: 4442
       SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
 
-  video:
+  video-chrome:
     image: selenium/video:latest
-    container_name: selenium-video
     depends_on:
       - chrome
+    shm_size: 2gb
     environment:
       DISPLAY_CONTAINER_NAME: chrome
       SE_VIDEO_FILE_NAME: auto
     volumes:
-      - ./videos:/videos
+      - ./Reports/Videos:/videos
+
+  video-firefox:
+    image: selenium/video:latest
+    depends_on:
+      - firefox
+    shm_size: 2gb
+    environment:
+      DISPLAY_CONTAINER_NAME: firefox
+      SE_VIDEO_FILE_NAME: auto
+    volumes:
+      - ./Reports/Videos:/videos

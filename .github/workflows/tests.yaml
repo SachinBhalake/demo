@@ -24,11 +24,79 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # ✅ Prepare folders
+      - name: Prepare Report Folders
+        run: |
+          mkdir -p Reports/Videos \
+                   Reports/Logs \
+                   Reports/HtmlReport \
+                   Reports/AllureReport \
+                   Reports/Screenshots
+
+      # ✅ Start Selenium Grid
       - name: Start Selenium Grid
         run: docker compose up -d
 
       - name: Wait for Grid
         run: sleep 20
 
+      # ✅ Run Tests
       - name: Run pytest
-        run: pytest -v
+        run: |
+          pytest -v \
+          --html=Reports/HtmlReport/report.html \
+          --self-contained-html \
+          --alluredir=Reports/AllureReport
+
+      # ✅ Install Allure
+      - name: Install Allure
+        run: |
+          sudo apt-add-repository ppa:qameta/allure -y
+          sudo apt-get update
+          sudo apt-get install allure -y
+
+      # ✅ Generate Allure HTML report
+      - name: Generate Allure Report
+        run: |
+          allure generate Reports/AllureReport -o Reports/AllureReport/html
+
+      # ✅ Upload Reports
+      - name: Upload HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: Reports/HtmlReport
+          if-no-files-found: ignore
+
+      - name: Upload Allure Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: Reports/AllureReport/html
+          if-no-files-found: ignore
+
+      - name: Upload Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: Reports/Screenshots
+          if-no-files-found: ignore
+
+      - name: Upload Videos
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos
+          path: Reports/Videos
+          if-no-files-found: ignore
+
+      - name: Upload Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: Reports/Logs
+          if-no-files-found: ignore
+
+      # ✅ Always cleanup
+      - name: Stop Selenium Grid
+        if: always()
+        run: docker compose down
