@@ -22,6 +22,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # ✅ Install Node (for Allure CLI)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install Allure CLI
+        run: npm install -g allure-commandline --save-dev
+
       # ✅ Prepare folders
       - name: Prepare Report Folders
         run: |
@@ -46,13 +55,10 @@ jobs:
           --self-contained-html \
           --alluredir=Reports/AllureReport
 
-      # ✅ Generate Allure Report (NO INSTALL, NO DOCKER)
+      # ✅ Generate Allure Report (NO DOCKER, NO JAVA IMAGE ISSUE)
       - name: Generate Allure Report
-        uses: simple-elf/allure-report-action@v1.7
-        if: always()
-        with:
-          allure_results: Reports/AllureReport
-          allure_report: Reports/AllureReport/html
+        run: |
+          allure generate Reports/AllureReport -o Reports/AllureReport/html
 
       # ✅ Upload Reports
       - name: Upload HTML Report
