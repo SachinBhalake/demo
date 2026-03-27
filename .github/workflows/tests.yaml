@@ -44,18 +44,23 @@ jobs:
       - name: Start Selenium Grid
         run: docker compose up -d
 
-      - name: Wait for Grid
-        run: sleep 20
+      # 🔥 FIX 1: Proper wait (instead of sleep)
+      - name: Wait for Selenium Grid
+        run: |
+          until curl -s http://localhost:4444/status | grep "ready"; do
+            echo "Waiting for Grid..."
+            sleep 5
+          done
 
-      # ✅ Run Tests
+      # 🔥 FIX 2: Run with grid + headless + markers
       - name: Run pytest
         run: |
-          pytest -v \
+          pytest -v --grid --headless -m "ui or api or cli" \
           --html=Reports/HtmlReport/report.html \
           --self-contained-html \
           --alluredir=Reports/AllureReport
 
-      # ✅ Generate Allure Report (NO DOCKER, NO JAVA IMAGE ISSUE)
+      # ✅ Generate Allure Report
       - name: Generate Allure Report
         run: |
           allure generate Reports/AllureReport -o Reports/AllureReport/html
