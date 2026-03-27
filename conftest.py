@@ -8,46 +8,48 @@ from Utilities.webdriver import get_driver
 from Utilities.get_config import ConfigReader
 from Utilities.helper import wait_for_video_complete
 from Utilities.logger import get_logger
+from Base.api_client import APIClient
 
 @pytest.fixture
 def logger(request):
     test_name = request.node.name
     logger, log_file = get_logger(test_name)
-
     request.node.log_file = log_file
     return logger
 
 def pytest_addoption(parser):
-
-    parser.addoption("--browser", action="store")
     parser.addoption("--env", action="store")
+    parser.addoption("--browser", action="store")
+    parser.addoption("--headless", action="store_true")
+    parser.addoption("--grid", action="store_true")
+
+@pytest.fixture(scope="session")
+def config(request):
+    return ConfigReader(
+        env_override=request.config.getoption("--env"),
+        browser_override=request.config.getoption("--browser"),
+        headless_override=request.config.getoption("--headless"),
+    )
 
 @pytest.fixture
-def driver(request):
+def api_client(config, logger):
+    return APIClient(config.get_api_base_url(), logger=logger)
 
-    config = ConfigReader()
-
-    browser = request.config.getoption("--browser") or config.get_browser()
-    env = request.config.getoption("--env") or config.config["env"]
-    url = config.get_base_url(env)
-
-    driver = get_driver(browser)
-
-    driver.get(url)
-
+@pytest.fixture
+def driver(request, config):
+    if "ui" not in request.keywords:
+        yield None
+        return
+    grid = request.config.getoption("--grid")
+    driver = get_driver(
+        browser=config.get_browser(),
+        headless=config.is_headless(),
+        grid=grid,
+        grid_url=config.get_grid_url()
+    )
+    driver.get(config.get_ui_base_url())
     yield driver
-
     driver.quit()
-
-
-@pytest.fixture
-def base_url(request):
-
-    config = ConfigReader()
-
-    env = request.config.getoption("--env") or config.config["env"]
-
-    return config.config["environments"][env]["base_url"]
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):

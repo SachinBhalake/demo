@@ -4,8 +4,13 @@ grid_url: http://localhost:4444/wd/hub
 
 environments:
   dev:
-    base_url: https://automationexercise.com/dev
+    ui_base_url: https://automationexercise.com
+    api_base_url: https://dummyjson.com
+
   qa:
-    base_url: https://automationexercise.com/qa
+    ui_base_url: https://automationexercise.com
+    api_base_url: https://dummyjson.com
+
   stage:
-    base_url: https://automationexercise.com/stage
+    ui_base_url: https://automationexercise.com
+    api_base_url: https://dummyjson.com

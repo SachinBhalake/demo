@@ -1,30 +1,35 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options as ChromeOptions
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from Utilities.get_config import ConfigReader
 
 
-def get_driver(browser):
-
-    config = ConfigReader()
-    grid_url = config.get_grid_url()
-
-    browser = browser.lower()
+def get_driver(browser, headless=False, grid=False, grid_url=None):
 
     if browser == "chrome":
-        options = ChromeOptions()
+        options = webdriver.ChromeOptions()
+
+        if headless:
+            options.add_argument("--headless=new")
+
+        if grid:
+            return webdriver.Remote(
+                command_executor=grid_url,
+                options=options
+            )
+
+        return webdriver.Chrome(options=options)
 
     elif browser == "firefox":
-        options = FirefoxOptions()
+        options = webdriver.FirefoxOptions()
+
+        if headless:
+            options.add_argument("--headless")
+
+        if grid:
+            return webdriver.Remote(
+                command_executor=grid_url,
+                options=options
+            )
+
+        return webdriver.Firefox(options=options)
 
     else:
-        raise ValueError("Browser must be chrome or firefox")
-
-    driver = webdriver.Remote(
-        command_executor=grid_url,
-        options=options
-    )
-
-    driver.maximize_window()
-
-    return driver
+        raise ValueError(f"Unsupported browser: {browser}")

@@ -1,4 +1,0 @@
-2026-03-17 17:06:45,173 - INFO - Test Started: Verify homepage title
-2026-03-17 17:06:45,173 - INFO - Getting page title
-2026-03-17 17:06:45,191 - INFO - Page title: Automation Exercise
-2026-03-17 17:06:45,191 - INFO - Test Passed: Title matched
