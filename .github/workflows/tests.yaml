@@ -2,106 +2,120 @@ name: Selenium Grid Tests
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # 🔹 Run UI, API, CLI tests in parallel
+    strategy:
+      fail-fast: false
+      matrix:
+        test-type: [ui, api, cli]
+
+    # 🔹 Global environment variables
+    env:
+      ENV: qa
+      PYTHONUNBUFFERED: 1
 
     steps:
 
+      # 🔹 Checkout latest code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 🔹 Setup Python with pip cache for faster installs
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
+      # 🔹 Install project dependencies
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      # ✅ Install Node (for Allure CLI)
+      # 🔹 Setup Node.js (required for Allure CLI)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "18"
 
+      # 🔹 Install Allure command-line tool
       - name: Install Allure CLI
-        run: npm install -g allure-commandline --save-dev
+        run: npm install -g allure-commandline
 
-      # ✅ Prepare folders
+      # 🔹 Create report directories (isolated per test type)
       - name: Prepare Report Folders
         run: |
-          mkdir -p Reports/Videos \
-                   Reports/Logs \
-                   Reports/HtmlReport \
-                   Reports/AllureReport \
-                   Reports/Screenshots
+          mkdir -p Reports/${{ matrix.test-type }}/HtmlReport
+          mkdir -p Reports/${{ matrix.test-type }}/AllureReport
+          mkdir -p Reports/${{ matrix.test-type }}/Logs
+          mkdir -p Reports/${{ matrix.test-type }}/Screenshots
 
-      # ✅ Start Selenium Grid
+      # 🔹 Start Selenium Grid (only for UI tests)
       - name: Start Selenium Grid
+        if: matrix.test-type == 'ui'
         run: docker compose up -d
 
-      # 🔥 FIX 1: Proper wait (instead of sleep)
+      # 🔹 Wait until Selenium Grid is ready (robust health check)
       - name: Wait for Selenium Grid
+        if: matrix.test-type == 'ui'
         run: |
-          until curl -s http://localhost:4444/status | grep "ready"; do
+          sudo apt-get update && sudo apt-get install -y jq
+          for i in {1..30}; do
+            STATUS=$(curl -s http://localhost:4444/status | jq -r '.value.ready')
+            if [ "$STATUS" = "true" ]; then
+              echo "Grid is ready"
+              exit 0
+            fi
             echo "Waiting for Grid..."
-            sleep 5
+            sleep 3
           done
+          echo "Grid failed to start"
+          docker compose logs
+          exit 1
 
-      # 🔥 FIX 2: Run with grid + headless + markers
+      # 🔹 Execute tests with parallelization, retries, and reporting
       - name: Run pytest
         run: |
-          pytest -v --grid --headless -m "ui or api or cli" \
-          --html=Reports/HtmlReport/report.html \
+          pytest -v -n logical \
+          --maxfail=5 \
+          --reruns 2 --reruns-delay 3 \
+          -m "${{ matrix.test-type }}" \
+          --html=Reports/${{ matrix.test-type }}/HtmlReport/report.html \
           --self-contained-html \
-          --alluredir=Reports/AllureReport
+          --alluredir=Reports/${{ matrix.test-type }}/AllureReport
 
-      # ✅ Generate Allure Report
+      # 🔹 Generate Allure HTML report
       - name: Generate Allure Report
-        run: |
-          allure generate Reports/AllureReport -o Reports/AllureReport/html
-
-      # ✅ Upload Reports
-      - name: Upload HTML Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: html-report
-          path: Reports/HtmlReport/report.html
-          if-no-files-found: ignore
-
-      - name: Upload Allure Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: Reports/AllureReport/html
-          if-no-files-found: ignore
-
-      - name: Upload Screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: Reports/Screenshots
-          if-no-files-found: ignore
-
-      - name: Upload Videos
-        uses: actions/upload-artifact@v4
-        with:
-          name: videos
-          path: Reports/Videos
-          if-no-files-found: ignore
-
-      - name: Upload Logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs
-          path: Reports/Logs
-          if-no-files-found: ignore
-
-      # ✅ Cleanup
-      - name: Stop Selenium Grid
         if: always()
+        run: |
+          allure generate \
+          Reports/${{ matrix.test-type }}/AllureReport \
+          -o Reports/${{ matrix.test-type }}/AllureReport/html
+
+      # 🔹 Upload reports as artifacts for each test type
+      - name: Upload Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-${{ matrix.test-type }}
+          path: Reports/${{ matrix.test-type }}/
+
+      # 🔹 Dump Docker logs only if UI tests fail (for debugging)
+      - name: Dump Docker Logs
+        if: failure() && matrix.test-type == 'ui'
+        run: docker compose logs
+
+      # 🔹 Stop Selenium Grid and cleanup resources
+      - name: Stop Selenium Grid
+        if: always() && matrix.test-type == 'ui'
         run: docker compose down

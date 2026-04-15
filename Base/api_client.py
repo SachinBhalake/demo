@@ -1,4 +1,5 @@
 import requests
+from Base.endpoints import Endpoints
 
 
 class APIClient:
@@ -67,7 +68,7 @@ class APIClient:
     # ------------------------
     def login(self, username, password):
         response = self.post(
-            "/auth/login",
+            Endpoints.Auth_User_Login,
             json={"username": username, "password": password}
         )
 
@@ -81,7 +82,7 @@ class APIClient:
 
     def refresh_access_token(self):
         response = self.post(
-            "/auth/refresh",
+            Endpoints.Auth_Refresh_Token,
             json={"refreshToken": self.refresh_token}
         )
 

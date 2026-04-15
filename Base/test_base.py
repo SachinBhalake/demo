@@ -1,4 +1,5 @@
 from Utilities.waits import Waits
+from selenium.webdriver.support.ui import Select
 
 
 class BasePage:
@@ -23,32 +24,36 @@ class BasePage:
         self.wait.wait_for_page_load()
 
     def get_element(self, locator):
-        self.logger.info(f"Finding element")
+        self.logger.info(f"Finding element: {locator}")
         element = self.wait.visible(locator)
+        if not element:
+            raise Exception(f"Element not found: {locator}")
         self.highlight(element)
         return element
 
     def get_elements(self, locator):
-        self.logger.info(f"Finding element list")
+        self.logger.info(f"Finding element list: {locator}")
         elements = self.wait.all_visible(locator)
+        if not elements:
+            raise Exception(f"Element not found: {locator}")
         for el in elements:
             self.highlight(el)
         return elements
 
     def click(self, locator):
-        self.logger.info(f"Clicking element")
+        self.logger.info(f"Clicking element: {locator}")
         element = self.wait.clickable(locator)
+        if not element:
+            raise Exception(f"Element not clickable: {locator}")
         self.highlight(element)
         try:
             element.click()
             self.logger.info("Click successful")
         except Exception as e1:
             self.logger.warning(f"Normal click failed, trying JS click | {str(e1)}")
-
             try:
                 self.driver.execute_script("arguments[0].click();", element)
                 self.logger.info("JS click successful")
-
             except Exception as e2:
                 self.logger.error(
                     f"Both normal click and JS click failed | "
@@ -57,19 +62,17 @@ class BasePage:
                 raise
 
     def send_keys(self, locator, data):
-        self.logger.info(f"Typing data into element")
+        self.logger.info(f"Typing data into element: {locator}")
         element = self.get_element(locator)
         element.clear()
         element.send_keys(data)
 
     def get_text(self, locator):
-        self.logger.info(f"Getting text from element")
+        self.logger.info(f"Getting text from element: {locator}")
         element = self.get_element(locator)
         text = element.text or element.get_attribute("innerText")
-
         text = text.strip() if text else ""
         self.logger.info(f"Captured text: {text}")
-
         return text
 
     def get_title(self):
@@ -85,8 +88,13 @@ class BasePage:
         )
 
     def get_attribute(self, locator, attr):
-        self.logger.info(f"Getting attribute of element")
+        self.logger.info(f"Getting attribute: {attr} of element: {locator}")
         element = self.get_element(locator)
         value = element.get_attribute(attr)
         self.logger.info(f"Attribute value: {value}")
         return value
+
+    def select_dropdown(self, locator, value):
+        self.logger.info(f"Selecting dropdown value: {value} of element: {locator}")
+        dropdown = Select(self.get_element(locator))
+        dropdown.select_by_value(value)

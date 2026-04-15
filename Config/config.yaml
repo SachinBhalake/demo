@@ -14,3 +14,7 @@ environments:
   stage:
     ui_base_url: https://automationexercise.com
     api_base_url: https://dummyjson.com
+
+  prod:
+    ui_base_url: https://automationexercise.com
+    api_base_url: https://dummyjson.com

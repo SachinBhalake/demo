@@ -1,5 +1,7 @@
 import pytest
+from Utilities.get_test_data import get_test_data
 
+test_data = get_test_data("TestData/api_test_data.yaml")
 
 @pytest.mark.api
 class TestAuthUserFlow:
@@ -7,7 +9,7 @@ class TestAuthUserFlow:
     def test_login_sets_token(self, api_client, logger):
         logger.info("===== TEST: LOGIN & TOKEN SET =====")
 
-        api_client.login("emilys", "emilyspass")
+        api_client.login(test_data["auth_user"]["valid_username"], test_data["auth_user"]["valid_password"])
 
         logger.info(f"Access Token: {api_client.access_token}")
 
@@ -20,7 +22,7 @@ class TestAuthUserFlow:
     def test_get_current_user(self, api_client, logger):
         logger.info("===== TEST: GET CURRENT USER =====")
 
-        api_client.login("emilys", "emilyspass")
+        api_client.login(test_data["auth_user"]["valid_username"], test_data["auth_user"]["valid_password"])
 
         response = api_client.get("/auth/me")
 
@@ -39,7 +41,7 @@ class TestAuthUserFlow:
     def test_create_user(self, api_client, logger):
         logger.info("===== TEST: CREATE USER =====")
 
-        api_client.login("emilys", "emilyspass")
+        api_client.login(test_data["auth_user"]["valid_username"], test_data["auth_user"]["valid_password"])
 
         payload = {
             "firstName": "Sachin",

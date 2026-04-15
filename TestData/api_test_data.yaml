@@ -1,3 +1,5 @@
 auth_user:
-  username: "emilys"
-  password: "emilyspass"
+  valid_username: "emilys"
+  valid_password: "emilyspass"
+  invalid_username: "emilys"
+  invalid_password: "emilyspass"

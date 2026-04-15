@@ -1,3 +1,5 @@
+from Base.endpoints import Endpoints
+
 class UserAPI:
 
     def __init__(self, client, logger=None):
@@ -8,7 +10,7 @@ class UserAPI:
         if self.logger:
             self.logger.info("Fetching logged-in user details")
 
-        response = self.client.get("/auth/me")
+        response = self.client.get(Endpoints.Auth_User_Details)
 
         # Add validation logic (important!)
         assert response.status_code == 200, "Failed to fetch user"

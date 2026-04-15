@@ -1,0 +1,27 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="ignoredPackages">
+        <list>
+          <option value="pytest-cov" />
+          <option value="tenacity" />
+          <option value="pytest" />
+          <option value="pytest-xdist" />
+          <option value="pytest-html" />
+          <option value="pytest-rerunfailures" />
+          <option value="pytest-metadata" />
+          <option value="allure-pytest" />
+          <option value="selenium" />
+          <option value="webdriver-manager" />
+          <option value="requests" />
+          <option value="urllib3" />
+          <option value="python-dotenv" />
+          <option value="PyYAML" />
+          <option value="colorama" />
+          <option value="packaging" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
