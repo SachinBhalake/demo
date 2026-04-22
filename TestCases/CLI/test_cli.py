@@ -1,84 +1,63 @@
 import pytest
-from Utilities.helper import run_command
+from Core.cli_client import CLIClient
 
 
 @pytest.mark.cli
-def test_docker_installed(logger):
-    logger.info("STEP: Verify Docker installation")
+class TestCLI:
 
-    result = run_command(["docker", "--version"])
+    def test_01_verify_docker_installed(self, logger):
+        logger.info("Test Started: Verify docker installation")
 
-    logger.info(f"STDOUT: {result.stdout}")
-    logger.info(f"STDERR: {result.stderr}")
+        client = CLIClient(logger=logger)
+        result = client.run_command(["docker", "--version"])
 
-    assert result.returncode == 0, "Docker is not installed"
-    assert "docker" in result.stdout.lower(), "Invalid docker version output"
+        assert result.returncode == 0, "Test Failed: Docker is not installed"
+        assert "docker" in result.stdout.lower(), "Test Failed: Invalid docker version output"
 
-    logger.info("Docker installation verified successfully")
+        logger.info("Test Passed: Verified docker installation")
 
+    def test_02_verify_docker_daemon_running(self, logger):
+        logger.info("Test Started: Verify docker daemon is running")
 
-@pytest.mark.cli
-def test_docker_daemon_running(logger):
-    logger.info("STEP: Verify Docker daemon is running")
+        client = CLIClient(logger=logger)
+        result = client.run_command(["docker", "info"])
 
-    result = run_command(["docker", "info"])
+        assert result.returncode == 0, "Test Failed: Docker daemon is not running"
 
-    logger.info(f"STDOUT: {result.stdout[:500]}")  # limit output
-    logger.info(f"STDERR: {result.stderr}")
-
-    assert result.returncode == 0, "Docker daemon is not running"
-
-    logger.info("Docker daemon is running successfully")
+        logger.info("Test Passed: Verified docker daemon is running")
 
 
-@pytest.mark.cli
-def test_docker_images_available(logger):
-    logger.info("STEP: Verify Docker images availability")
+    def test_03_verify_docker_images_available(self, logger):
+        logger.info("Test Started: Verify docker images are available")
 
-    result = run_command(["docker", "images"])
+        client = CLIClient(logger=logger)
+        result = client.run_command(["docker", "images"])
 
-    logger.info(f"STDOUT:\n{result.stdout}")
-    logger.info(f"STDERR: {result.stderr}")
+        assert result.returncode == 0, "Test Failed: Failed to fetch docker images"
+        assert len(result.stdout.strip().split("\n")) > 1, "Test Failed: No docker images found"
 
-    assert result.returncode == 0, "Failed to fetch Docker images"
-    assert len(result.stdout.strip()) > 0, "No Docker images found"
+        logger.info("Test Passed: Verified docker images are available")
 
-    logger.info("Docker images are available")
+    def test_04_verify_docker_containers_running(self, logger):
+        logger.info("Test Started: Verify docker containers are running")
 
-@pytest.mark.cli
-def test_docker_containers_running(logger):
-    logger.info("STEP: Check Docker containers are running")
+        client = CLIClient(logger=logger)
+        result = client.run_command(["docker", "ps"])
 
-    result = run_command(["docker", "ps"])
+        assert result.returncode == 0, "Test Failed: Docker command failed"
+        assert "selenium-hub" in result.stdout.lower(), "Test Failed: Selenium hub is not running"
+        assert "chrome" in result.stdout.lower() or "firefox" in result.stdout.lower(), "Test Failed: Browser container is not running"
 
-    logger.info(f"Return Code: {result.returncode}")
-    logger.info(f"STDOUT:\n{result.stdout}")
-    logger.info(f"STDERR:\n{result.stderr}")
+        logger.info("Test Passed: Verified Docker containers are running")
 
-    # Validate docker command
-    assert result.returncode == 0, "Docker command failed"
+    def test_05_verify_docker_network_listing(self, logger):
+        logger.info("Test Started: Verify docker networks listing")
 
-    output = result.stdout.lower()
+        client = CLIClient(logger=logger)
+        result = client.run_command(["docker", "network", "ls"])
 
-    # Validate containers (based on your docker-compose)
-    assert "selenium-hub" in output, "Selenium Hub is not running"
-    assert "chrome" in output or "firefox" in output, "Browser container is not running"
+        assert result.returncode == 0, "Test Failed: Failed to fetch docker networks"
+        assert "NETWORK ID" in result.stdout, "Test Failed: Invalid network list output"
+        assert "bridge" in result.stdout.lower(), "Test Failed: Default bridge network missing"
 
-    logger.info("Docker containers are running successfully")
-
-@pytest.mark.cli
-def test_docker_network_ls(logger):
-    logger.info("STEP: Verify Docker networks listing")
-
-    result = run_command(["docker", "network", "ls"])
-
-    logger.info(f"STDOUT:\n{result.stdout}")
-    logger.info(f"STDERR: {result.stderr}")
-
-    assert result.returncode == 0, "Failed to fetch Docker networks"
-
-    assert "NETWORK ID" in result.stdout, "Invalid network list output"
-
-    assert "bridge" in result.stdout, "Default bridge network missing"
-
-    logger.info("Docker networks listed successfully")
+        logger.info("Test Passed: Verified docker networks listed")

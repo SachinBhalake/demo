@@ -1,17 +1,5 @@
 import os
 import time
-import subprocess
-
-
-def run_command(command):
-    """
-    Runs CLI command and returns result
-    """
-    return subprocess.run(
-        command,
-        capture_output=True,
-        text=True
-    )
 
 def wait_for_video_complete(file_path, timeout=40, stable_time=3):
     """

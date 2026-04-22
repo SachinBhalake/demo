@@ -15,7 +15,6 @@ webdriver-manager==4.0.2
 
 # API
 requests==2.32.5
-urllib3==2.2.3
 
 # Config
 python-dotenv==1.2.2

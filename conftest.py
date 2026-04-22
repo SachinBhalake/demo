@@ -8,7 +8,24 @@ from Utilities.webdriver import get_driver
 from Utilities.get_config import ConfigReader
 from Utilities.helper import wait_for_video_complete
 from Utilities.logger import get_logger
-from Base.api_client import APIClient
+from Core.api_client import APIClient
+from Services.auth_service import AuthService
+from Services.user_api import UserAPI
+
+@pytest.fixture
+def api_client(config, logger):
+    return APIClient(
+        base_url=config.get_api_base_url(),
+        logger=logger
+    )
+
+@pytest.fixture
+def auth_service(api_client, logger):
+    return AuthService(api_client, logger)
+
+@pytest.fixture
+def user_api(api_client, logger):
+    return UserAPI(api_client, logger)
 
 @pytest.fixture
 def logger(request):
@@ -30,10 +47,6 @@ def config(request):
         browser_override=request.config.getoption("--browser"),
         headless_override=request.config.getoption("--headless"),
     )
-
-@pytest.fixture
-def api_client(config, logger):
-    return APIClient(config.get_api_base_url(), logger=logger)
 
 @pytest.fixture
 def driver(request, config):

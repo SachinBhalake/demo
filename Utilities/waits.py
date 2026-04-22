@@ -61,3 +61,19 @@ class Waits:
             )
         except Exception:
             return False
+
+    def alert(self, timeout=None):
+        try:
+            return self._wait(timeout).until(
+                EC.alert_is_present()
+            )
+        except Exception:
+            return False
+
+    def url_contains(self, text, timeout=None):
+        try:
+            return self._wait(timeout).until(
+                EC.url_contains(text)
+            )
+        except Exception:
+            return False

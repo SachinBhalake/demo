@@ -8,6 +8,7 @@ class ConfigReader:
 
     def __init__(self, env_override=None, browser_override=None, headless_override=False):
 
+        # -------- Config YAML --------
         if ConfigReader._config is None:
             with open("Config/config.yaml", encoding="utf-8") as file:
                 ConfigReader._config = yaml.safe_load(file)

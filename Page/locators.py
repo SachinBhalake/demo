@@ -5,6 +5,9 @@ class Locators:
 
     #static locators
 
+    _ad_iframe = (By.XPATH, "//iframe[@id='aswift_3']")
+    _ad_close_button = (By.XPATH, "//div[@id='dismiss-button']")
+
     _home_button = (By.XPATH, "//a[@href='/' and text()=' Home']")
     _products_button = (By.XPATH, "//a[@href='/products']")
     _cart_button = (By.XPATH, "//a[@href='/view_cart']")
@@ -12,6 +15,8 @@ class Locators:
     _testcases_button = (By.XPATH, "//a[@href='/test_cases']")
     _api_testing_button = (By.XPATH, "//a[@href='/api_list']")
     _contact_us_button = (By.XPATH, "//a[@href='/contact_us']")
+
+    _homepage_slider = (By.XPATH, "//div[@id='slider-carousel'] ")
 
     _signup_header1 = (By.XPATH, "//h2[text()='New User Signup!']")
     _signup_username = (By.XPATH, "//input[@data-qa='signup-name']")

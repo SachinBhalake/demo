@@ -2,7 +2,7 @@ from Utilities.waits import Waits
 from selenium.webdriver.support.ui import Select
 
 
-class BasePage:
+class UIClient:
 
     def __init__(self, driver, logger):
         self.driver = driver
@@ -50,14 +50,14 @@ class BasePage:
             element.click()
             self.logger.info("Click successful")
         except Exception as e1:
-            self.logger.warning(f"Normal click failed, trying JS click | {str(e1)}")
+            self.logger.warning(f"Normal click failed, trying JS click | {str(e1)[:80]}")
             try:
                 self.driver.execute_script("arguments[0].click();", element)
                 self.logger.info("JS click successful")
             except Exception as e2:
                 self.logger.error(
                     f"Both normal click and JS click failed | "
-                    f"Normal Error: {str(e1)} | JS Error: {str(e2)}"
+                    f"JS Error: {str(e2)[:80]}"
                 )
                 raise
 
@@ -81,6 +81,12 @@ class BasePage:
         self.logger.info(f"Page title: {title}")
         return title
 
+    def get_url(self):
+        self.logger.info(f"Getting page url")
+        url = self.driver.current_url
+        self.logger.info(f"Page url: {url}")
+        return url
+
     def scroll_into_view(self, element):
         self.driver.execute_script(
             "arguments[0].scrollIntoView({block:'center', inline:'nearest', behavior:'instant'});",
@@ -98,3 +104,17 @@ class BasePage:
         self.logger.info(f"Selecting dropdown value: {value} of element: {locator}")
         dropdown = Select(self.get_element(locator))
         dropdown.select_by_value(value)
+
+    def accept_alert(self):
+        self.logger.info(f"Accepting alert")
+        alert = self.wait.alert()
+        alert.accept()
+
+    def switch_to_iframe(self, locator):
+        self.logger.info(f"Switching to iframe: {locator}")
+        iframe = self.wait.presence(locator)
+        self.driver.switch_to.frame(iframe)
+
+    def switch_to_default(self):
+        self.logger.info("Switching to default content")
+        self.driver.switch_to.default_content()
